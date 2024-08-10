@@ -56,6 +56,12 @@ async function run() {
     });
     // --------------------- recipe -----------------------------
 
+    // ---------------------- paginations ----------------------------
+
+    app.get('/totalCount', async(req,res)=>{
+      const count = await orderMeneCollaction.estimatedDocumentCount()
+      res.send({count})
+    })
 
     // ---------------------- order ----------------------------
 
