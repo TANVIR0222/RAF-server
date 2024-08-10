@@ -1,23 +1,24 @@
-const express = require('express');
+const express = require("express");
 const app = express();
-const dotenv = require('dotenv');
-const cors = require('cors');
+const dotenv = require("dotenv");
+const cors = require("cors");
 
 app.use(cors());
 app.use(express.json());
 
-app.get('/', (req,res)=>{
-    res.send('Hello World');
-})
+app.get("/", (req, res) => {
+  res.send("Hello World");
+});
 
-app.listen(3000, ()=>{
-    console.log('Server is running on port 3000');
-})
+app.listen(3000, () => {
+  console.log("Server is running on port 3000");
+});
 
 // J2j2FABttabBEFOD
 
-const { MongoClient, ServerApiVersion } = require('mongodb');
-const uri = "mongodb+srv://tanvirislam3912:4nTjsdgFIXPUlNg9@cluster0.mctsotv.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+const uri =
+  "mongodb+srv://tanvirislam3912:4nTjsdgFIXPUlNg9@cluster0.mctsotv.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -25,7 +26,7 @@ const client = new MongoClient(uri, {
     version: ServerApiVersion.v1,
     strict: true,
     deprecationErrors: true,
-  }
+  },
 });
 
 async function run() {
@@ -34,22 +35,37 @@ async function run() {
     await client.connect();
     // Send a ping to confirm a successful connection
 
+    const recipeMenuCollaction = client
+      .db("food-recipe-and-order")
+      .collection("viewmenu");
 
-    const recipeMenuCallaction = client.db('tanvirislam3912').collection('recipe-and-food-order');
+
+    const orderMeneCollaction = client.db('food-recipe-and-order').collection('orderMenu')
+
+    // --------------------- recipe -----------------------------
+    app.get("/recipeMenu", async (req, res) => {
+      const result = await recipeMenuCollaction.find().toArray();
+      res.send(result);
+    });
+
+    app.get("/recipeMenu/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await recipeMenuCollaction.findOne(query);
+      res.send(result);
+    });
+    // --------------------- recipe -----------------------------
 
 
+    // ---------------------- order ----------------------------
 
-    app.get('/recipemenu',async(req,res)=>{
-        const result = await recipeMenuCallaction.find().toArray();
-        res.send(result);
+    app.get('/order', async(req,res)=>{
+      const result = await orderMeneCollaction.find().toArray();
+      res.send(result);
     })
-
-
 
     console.log("You successfully connected to MongoDB!");
   } finally {
-    // Ensures that the client will close when you finish/error
-    // await client.close();
   }
 }
 run().catch(console.dir);
