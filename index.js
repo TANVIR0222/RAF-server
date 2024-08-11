@@ -77,7 +77,12 @@ async function run() {
       const result = await cartdCollaction.insertOne(cartdItem)
       res.send(result);
     })
-
+    // ---------------------- carts total item ----------------------------
+    app.get('/carts', async(req,res) =>{
+      const result = await cartdCollaction.find().toArray();
+      res.send(result);
+    })
+    
 
     console.log("You successfully connected to MongoDB!");
   } finally {
