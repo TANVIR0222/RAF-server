@@ -79,10 +79,21 @@ async function run() {
     })
     // ---------------------- carts total item ----------------------------
     app.get('/carts', async(req,res) =>{
-      const result = await cartdCollaction.find().toArray();
+        // use anujai carts ar data loading kora jonno email & query 
+      const email = req.query.email;
+      const query = {email : email}
+      const result = await cartdCollaction.find(query).toArray();
       res.send(result);
     })
-    
+
+      // ---------------------- carts Delete item ----------------------------
+    app.delete('/carts/:id' , async(req,res)=>{
+      const id = req.params.id;
+      const query = {_id : new ObjectId(id) };
+      const result = await cartdCollaction.deleteOne(query);
+      res.send(result);
+    })
+
 
     console.log("You successfully connected to MongoDB!");
   } finally {
