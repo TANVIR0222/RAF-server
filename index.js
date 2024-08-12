@@ -42,6 +42,7 @@ async function run() {
 
     const orderMeneCollaction = client.db('food-recipe-and-order').collection('orderMenu')
     const cartdCollaction = client.db('food-recipe-and-order').collection('carts')
+    const userCollaction = client.db('food-recipe-and-order').collection('users')
 
     // --------------------- recipe -----------------------------
     app.get("/recipeMenu", async (req, res) => {
@@ -92,6 +93,13 @@ async function run() {
       const query = {_id : new ObjectId(id) };
       const result = await cartdCollaction.deleteOne(query);
       res.send(result);
+    })
+
+    // ---------------------- user data send database ----------------------------
+    app.post('/users',async(req,res)=>{
+      const user = req.body;
+      const result = await userCollaction.insertOne(user);
+      res.send(result)
     })
 
 
