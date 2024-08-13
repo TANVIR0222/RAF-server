@@ -132,6 +132,15 @@ async function run() {
       res.send(result);
     })
 
+      // ---------------------  data update -----------------------------
+
+      app.get('/order/:id', async (req,res) =>{
+        const id = req.params.id;
+        const querry = {_id : new ObjectId(id)}
+        const result = await orderMeneCollaction.findOne(querry);
+        res.send(result);
+      })
+
     // ---------------------- carts collections ----------------------------
     app.post("/carts", async (req, res) => {
       const cartdItem = req.body;
