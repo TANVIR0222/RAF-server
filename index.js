@@ -123,6 +123,15 @@ async function run() {
       const result = await orderMeneCollaction.insertOne(data)
       res.send(result);
     })
+    // ---------------------  data deleted -----------------------------
+
+    app.delete('/order/:id', verifyToken,veryfyAdmin, async(req,res) =>{
+      const id = req.params.id
+      const querry = {_id : new ObjectId(id)}
+      const result = await orderMeneCollaction.deleteOne(querry);
+      res.send(result);
+    })
+
     // ---------------------- carts collections ----------------------------
     app.post("/carts", async (req, res) => {
       const cartdItem = req.body;
