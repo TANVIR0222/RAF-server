@@ -3,13 +3,13 @@ const app = express();
 const dotenv = require("dotenv");
 const cors = require("cors");
 var jwt = require("jsonwebtoken");
-const stripe = require("stripe")('sk_test_51PnbBXRvHgxb6UJ2HAeRP2U8uKROFNIKFSGTiHIFucUvSJ5APbGCQNK7QMyeVwYMFw3BcxiwEvXoudIp46qNclSx001rG5tusf');
-
+const stripe = require("stripe")(
+  "sk_test_51PnbBXRvHgxb6UJ2HAeRP2U8uKROFNIKFSGTiHIFucUvSJ5APbGCQNK7QMyeVwYMFw3BcxiwEvXoudIp46qNclSx001rG5tusf"
+);
 
 app.use(cors());
 app.use(express.json());
 require("dotenv").config();
-
 
 app.get("/", (req, res) => {
   res.send("Hello World");
@@ -68,17 +68,17 @@ async function run() {
 
     const verifyToken = (req, res, next) => {
       // console.log("insert verify token", req.headers.authorization);
-      if(!req.headers.authorization){
+      if (!req.headers.authorization) {
         return res.status(401).send({ message: "Unauthorized" });
       }
-      const token = req.headers.authorization.split(' ')[1];
+      const token = req.headers.authorization.split(" ")[1];
       jwt.verify(token, process.env.SECRET, (err, decoded) => {
         if (err) {
           return res.status(401).send({ message: "Unauthorized" });
-          }
-          req.decoded = decoded;
-          next();
-        });
+        }
+        req.decoded = decoded;
+        next();
+      });
     };
 
     // --------------------- verify admin -----------------------------
@@ -100,7 +100,6 @@ async function run() {
       res.send(result);
     });
 
-    
     // --------------------- recipe -----------------------------
     app.get("/recipeMenu/:id", async (req, res) => {
       const id = req.params.id;
@@ -124,47 +123,46 @@ async function run() {
     });
 
     // --------------------- send data database -----------------------------
-    app.post('/order', verifyToken, veryfyAdmin, async(req,res) =>{
+    app.post("/order", verifyToken, veryfyAdmin, async (req, res) => {
       const data = req.body;
-      const result = await orderMeneCollaction.insertOne(data)
+      const result = await orderMeneCollaction.insertOne(data);
       res.send(result);
-    })
+    });
     // ---------------------  data deleted -----------------------------
 
-    app.delete('/order/:id', verifyToken,veryfyAdmin, async(req,res) =>{
-      const id = req.params.id
-      const querry = {_id : new ObjectId(id)}
+    app.delete("/order/:id", verifyToken, veryfyAdmin, async (req, res) => {
+      const id = req.params.id;
+      const querry = { _id: new ObjectId(id) };
       const result = await orderMeneCollaction.deleteOne(querry);
       res.send(result);
-    })
+    });
 
-      // ---------------------  data update -----------------------------
+    // ---------------------  data update -----------------------------
 
-      app.get('/order/:id', async (req,res) =>{
-        const id = req.params.id;
-        const querry = {_id : new ObjectId(id)}
-        const result = await orderMeneCollaction.findOne(querry);
-        res.send(result);
-      })
+    app.get("/order/:id", async (req, res) => {
+      const id = req.params.id;
+      const querry = { _id: new ObjectId(id) };
+      const result = await orderMeneCollaction.findOne(querry);
+      res.send(result);
+    });
 
-      // ---------------------  data update -----------------------------
-      app.patch('/order/:id', async(req,res) =>{
-        const id = req.params.id;
-        const items = req.body;
-        const filte = {_id : new ObjectId(id)}
-        const updateDoc = {
-          $set:{
-            name: items.name,
-            recipe:items.recipe,
-            price:items.price,
-            image:items.image,
-            category: items.category
-          }
-        }
-        const result = await orderMeneCollaction.updateOne(filte,updateDoc);
-        res.send(result);
-      })
-
+    // ---------------------  data update -----------------------------
+    app.patch("/order/:id", async (req, res) => {
+      const id = req.params.id;
+      const items = req.body;
+      const filte = { _id: new ObjectId(id) };
+      const updateDoc = {
+        $set: {
+          name: items.name,
+          recipe: items.recipe,
+          price: items.price,
+          image: items.image,
+          category: items.category,
+        },
+      };
+      const result = await orderMeneCollaction.updateOne(filte, updateDoc);
+      res.send(result);
+    });
 
     // ---------------------- carts collections ----------------------------
     app.post("/carts", async (req, res) => {
@@ -236,22 +234,21 @@ async function run() {
     );
 
     // ---------------------- admin or not chack ----------------------------
-    
-    app.get('/users/admin/:email', verifyToken, async(req,res)=>{
+
+    app.get("/users/admin/:email", verifyToken, async (req, res) => {
       const email = req.params.email;
-      if(email !== req.decoded.email){
-        return res.status(403).send({message:'forbidden access'})
+      if (email !== req.decoded.email) {
+        return res.status(403).send({ message: "forbidden access" });
       }
-      const query = {email : email}
+      const query = { email: email };
       const user = await userCollaction.findOne(query);
       let admin = false;
-      if(user){
-        admin = user?.role === 'admin';
+      if (user) {
+        admin = user?.role === "admin";
       }
 
-      res.send({admin});
-
-    })
+      res.send({ admin });
+    });
 
     // ---------------------- payment intent ----------------------
 
@@ -271,21 +268,26 @@ async function run() {
       });
     });
 
+    // ---------------------- payment intent ----------------------
+    app.post("/payments", async (req, res) => {
+      const payment = req.body;
+      const paymentResult = await paymentsCollaction.insertOne(payment);
+      // carefully delate each items for the cart
+      const query = {
+        _id: {
+          $in: payment.cartId.map((id) => new ObjectId(id)),
+        },
+      };
+      const deleteQuery = await cartdCollaction.deleteMany(query);
+      res.send({ paymentResult, deleteQuery });
+    });
 
-  // ---------------------- payment intent ----------------------
-  app.post("/payments", async (req, res) =>{
-    const payment = req.body;
-    const paymentResult =  await paymentsCollaction.insertOne(payment);
-    console.log('send data' ,payment);
-    // carefully delate each items for the cart 
-    const query ={_id :{
-      $in : payment.cartId.map(id => new ObjectId(id))
-    }}
-    const deleteQuery = await cartdCollaction.deleteMany(query);
-    res.send({paymentResult,deleteQuery});
-  })
-
-
+    app.get('/payments/:email', verifyToken,  async(req,res) =>{
+      const email = req.params.email;
+      const query = { email: email };
+      const payments = await paymentsCollaction.find(query).toArray();
+      res.send(payments);
+    })
     console.log("You successfully connected to MongoDB!");
   } finally {
   }
