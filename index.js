@@ -281,6 +281,7 @@ async function run() {
       const deleteQuery = await cartdCollaction.deleteMany(query);
       res.send({ paymentResult, deleteQuery });
     });
+    // ---------------------- payment see email ----------------------
 
     app.get('/payments/:email', verifyToken,  async(req,res) =>{
       const email = req.params.email;
@@ -288,6 +289,33 @@ async function run() {
       const payments = await paymentsCollaction.find(query).toArray();
       res.send(payments);
     })
+
+    // ---------------------- Admin analytics ----------------------
+    app.get('/admin-stats', verifyToken ,veryfyAdmin, async(req,res) =>{
+      const user = await userCollaction.estimatedDocumentCount();
+      const order = await orderMeneCollaction.estimatedDocumentCount();
+      const payment = await paymentsCollaction.estimatedDocumentCount();
+
+      // bangla system 
+      // const payments = await paymentsCollaction.find().toArray();
+      // const revenue = payments.reduce((total , payment)=> total + payment.price ,0)
+
+      const result = await paymentsCollaction.aggregate([
+        {
+          $group:{
+            _id:null,
+            totalRevenue:{
+              $sum:'$price'
+            }
+          }
+        }
+      ]).toArray();
+
+      const revenue  = result.length > 0 ? result[0].totalRevenue : 0
+
+      res.send({user,order,payment,revenue})
+    })
+
     console.log("You successfully connected to MongoDB!");
   } finally {
   }
