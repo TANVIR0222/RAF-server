@@ -55,6 +55,9 @@ async function run() {
     const paymentsCollaction = client
       .db("food-recipe-and-order")
       .collection("payments");
+    const commentsCollaction = client
+      .db("food-recipe-and-order")
+      .collection("comments");
 
     // --------------------- jwt -----------------------------
 
@@ -105,6 +108,7 @@ async function run() {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await recipeMenuCollaction.findOne(query);
+      console.log(result);
       res.send(result);
     });
 
@@ -283,38 +287,48 @@ async function run() {
     });
     // ---------------------- payment see email ----------------------
 
-    app.get('/payments/:email', verifyToken,  async(req,res) =>{
+    app.get("/payments/:email", verifyToken, async (req, res) => {
       const email = req.params.email;
       const query = { email: email };
       const payments = await paymentsCollaction.find(query).toArray();
       res.send(payments);
-    })
+    });
 
     // ---------------------- Admin analytics ----------------------
-    app.get('/admin-stats', verifyToken ,veryfyAdmin, async(req,res) =>{
+    app.get("/admin-stats", verifyToken, veryfyAdmin, async (req, res) => {
       const user = await userCollaction.estimatedDocumentCount();
       const order = await orderMeneCollaction.estimatedDocumentCount();
       const payment = await paymentsCollaction.estimatedDocumentCount();
 
-      // bangla system 
+      // bangla system
       // const payments = await paymentsCollaction.find().toArray();
       // const revenue = payments.reduce((total , payment)=> total + payment.price ,0)
 
-      const result = await paymentsCollaction.aggregate([
-        {
-          $group:{
-            _id:null,
-            totalRevenue:{
-              $sum:'$price'
-            }
-          }
-        }
-      ]).toArray();
+      const result = await paymentsCollaction
+        .aggregate([
+          {
+            $group: {
+              _id: null,
+              totalRevenue: {
+                $sum: "$price",
+              },
+            },
+          },
+        ])
+        .toArray();
 
-      const revenue  = result.length > 0 ? result[0].totalRevenue : 0
+      const revenue = result.length > 0 ? result[0].totalRevenue : 0;
 
-      res.send({user,order,payment,revenue})
-    })
+      res.send({ user, order, payment, revenue });
+    });
+
+    //
+
+    app.post("/comments", async (req, res) => {
+      const id = req.body;
+      const comment = await commentsCollaction.insertOne(id);
+      res.send(comment);
+    });
 
     console.log("You successfully connected to MongoDB!");
   } finally {
