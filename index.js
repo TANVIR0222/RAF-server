@@ -3,6 +3,7 @@ const app = express();
 const dotenv = require("dotenv");
 const cors = require("cors");
 var jwt = require("jsonwebtoken");
+// stipe 
 const stripe = require("stripe")(
   "sk_test_51PnbBXRvHgxb6UJ2HAeRP2U8uKROFNIKFSGTiHIFucUvSJ5APbGCQNK7QMyeVwYMFw3BcxiwEvXoudIp46qNclSx001rG5tusf"
 );
@@ -102,7 +103,6 @@ async function run() {
       const result = await recipeMenuCollaction.find().toArray();
       res.send(result);
     });
-
     // --------------------- recipe -----------------------------
     app.get("/recipeMenu/:id", async (req, res) => {
       const id = req.params.id;
